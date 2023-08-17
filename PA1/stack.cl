@@ -1,103 +1,110 @@
 
-
 class Main inherits IO{
-	n:Int;
-	pst:String;
-	tval:Bool;
-	cint:Int;
-    top1:String;
-    top2:String;
-	a2iobj:A2I;
-    com:String;
-	head:Element;
-	temp:Element;
-	temp2:Element;
-    	tempstr:String;
+	flagStp:Bool;
+	nStack:Int;
+	a2iObj:A2I;
+	entrada:String;
+	stack:Stacky;
+	val:String;
+	tmp:String;
+	tmp2:String;
+
 	main():Object{{
-	n<-0;
-	tval<-true;
-	a2iobj<-new A2I;
-	out_string("Commands available\n1.<int>\n2.+\n3.s\n4.e\n5.d\n6.x\n");
-	while tval loop 
+		nStack<-0;
+		flagStp<-true;
+		a2i<-new A2I;
+		out_string("Caracteres que se pueden agregar \n 1. Enetero\n2.+\n3.s\n4.e\n5.d\n6.x\n");
+		while flagStp loop
 			{
-			 out_string(">");
-			com<-in_string();
-                        if com ="x" then {out_string("\nTerminating ....\n");tval<-false;}
-			else
-                        	if com="e" then 
-					{pst<-popstack();
-					if pst="+" then
-						if n<2 then {out_string("\nImproper Stack .Not enough integers\nAborting ...\n");abort();}
+				out_string(">");
+				entrada<-in_string();
+				if entrada="x" then { 
+					out_string("Adios c: ....\n"); 
+					flagStp<-false;
+					}
+				else
+					if entrada="e" then{
+						val<-stack.getTop();
+						stack<-stack.popStack(stack);
+						if val="+" then
+							if n<2 then{
+								out_string("ESto no se pude no hay suficientes enteros\n");		
+								stack<-stack.popStack(stack);
+							}else{
+								tmp<-stack.getTop();
+								stack<-stack.popStack(stack);
+								tmp2<-stack.getTop();
+								stack<-stack.popStack(stack);
+								nStack<-nStack+1;
+								stack<-pushStack(a2iObj.i2a(a2iObj.a2i(tmp)+a2iObj.a2i(tmp2)),nStack,stack);
+							}fi
 						else
-						{      	
-							top1<-popstack();
-							top2<-popstack();
-							pushstack(a2iobj.i2a(a2iobj.a2i(top1)+a2iobj.a2i(top2)));
-						}fi
-
-                               		else 
-						if pst="s" then {top1<-popstack();top2<-popstack();pushstack(top1);pushstack(top2);}
-                                   		else
-						pushstack(pst)   				
-						fi
-                               		fi;}
-                           	else 
-					if com="d" then printstack() 
-					else pushstack(com)
+							if val="s" then{
+								tmp<-stack.getTop();
+								stack<-stack.popStack(stack);
+								tmp2<-stack.getTop();
+								stack<-stack.popStack(stack);
+								stack<-pushStack(tmp,nStack,stack);
+								stack<-pushStack(tmp2,nStack,stack);
+							}
+							else
+								stack<-pushStack(val,nStack,stack)
+							fi
+						fi;
+					}
+					else
+					if entrada = "d" then {stack.printStack();}
+					else
+						stack<-pushStack(entrada,nStack,stack)
 					fi
-				fi
-			fi;
-			 }
-			 pool;	
-			 
-			 		
+					fi
+				fi;
+			}pool;
 	}};
-    pushstack(st:String):Object{{
-        n<-n+1;
-	temp<-new Element;
-        temp.init(st);
-        if n=1 then head<-temp else
-        {temp.addthis(head);
-            head<-temp;}
-        fi;
-    
-    
-    }};
-    popstack():String{{
-        n<-n-1;
-        tempstr<-head.getelem();
-        head<-head.getnext();
-        tempstr;
-    
-    }};
-
-    
-	printstack():Object{{
-		
-		temp2<-head;
-		out_string("The stack now is :\n");
-		while not isvoid temp2 
-						   loop 
-						   {out_string(temp2.getelem());out_string("\n");
-						   temp2<-temp2.getnext();
-						   }
-						   pool;
-	
-	}};
-
-
 };
 
-class Element inherits IO{
+class Stacky inherits StackCommands{
+	head:String;
+	next:Stacky;
+	init(x:String):Object{{
+		head<-x;
+	}};
+	addthis(y:Stacky):Object{{
+		next<-y;
+	}};
+	getTop():String{head};
+	getNext():StackCommands{next};
+};
+class StackCommands inherits IO {
+	aux:Stacky;
+	temp:Stacky;
+	popStack(stack: Stacky):Stacky{
+		aux<-stack.getNext();
+		aux;
+	};
+	pushStack(value:String,n:Int, stack:Stacky):Stacky{
+		aux.init(value);
+		if n = 1 then{
+			stack<-aux;
+		}else
+		{
+			aux.addthis(stack);
+			stack<-aux;
+		}fi
+		stack;
+	};
+	printStack(stack:Stacky):Object{{
+		
+		temp<-stack;
+		out_string("Pila: \n");
+		while not isvoid stack
+		loop
+		{
+			out_string(temp.getTop());
+			out_string("\n");
+			temp <- temp.getNext();
 
-	h:String;
-	t:Element;
-	init(x:String):Object{
-	h<-x
-	};
-	addthis(y:Element):Object{
-	t<-y
-	};
-	getelem():String{h};
-	getnext():Element{t};
+		}
+		pool;
+	}};
 };
