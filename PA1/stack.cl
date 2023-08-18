@@ -1,18 +1,20 @@
 
 class Main inherits IO{
+	int1:Int;
+	int2:Int;
+	sum:String; 
 	flagStp:Bool;
 	nStack:Int;
 	a2iObj:A2I;
 	entrada:String;
 	stack:Stacky;
 	val:String;
-	tmp:String;
-	tmp2:String;
-
+	tmpStr:String;
+	tmpStr2:String;
 	main():Object{{
-		nStack<-0;
+		nStack <- 0;
 		flagStp<-true;
-		a2i<-new A2I;
+		a2iObj<-new A2I;
 		out_string("Caracteres que se pueden agregar \n 1. Enetero\n2.+\n3.s\n4.e\n5.d\n6.x\n");
 		while flagStp loop
 			{
@@ -27,36 +29,40 @@ class Main inherits IO{
 						val<-stack.getTop();
 						stack<-stack.popStack(stack);
 						if val="+" then
-							if n<2 then{
-								out_string("ESto no se pude no hay suficientes enteros\n");		
+							if nStack<2 then{
+								out_string("ESto no se pude no hay suficientes enteros \n");		
 								stack<-stack.popStack(stack);
 							}else{
-								tmp<-stack.getTop();
+								tmpStr<-stack.getTop();
 								stack<-stack.popStack(stack);
-								tmp2<-stack.getTop();
+								tmpStr2<-stack.getTop();
 								stack<-stack.popStack(stack);
-								nStack<-nStack+1;
-								stack<-pushStack(a2iObj.i2a(a2iObj.a2i(tmp)+a2iObj.a2i(tmp2)),nStack,stack);
+								nStack<-nStack + 1;
+								int2<-a2iObj.a2i(tmpStr);
+								int1<-a2iObj.a2i(tmpStr2);
+								sum<-a2iObj.i2a( int1+ int2);
+								stack <- stack.pushStack(sum,nStack,stack);
 							}fi
 						else
 							if val="s" then{
-								tmp<-stack.getTop();
+								tmpStr<-stack.getTop();
 								stack<-stack.popStack(stack);
-								tmp2<-stack.getTop();
+								tmpStr2<-stack.getTop();
 								stack<-stack.popStack(stack);
-								stack<-pushStack(tmp,nStack,stack);
-								stack<-pushStack(tmp2,nStack,stack);
+								stack<-stack.pushStack(tmpStr,nStack,stack);
+								stack<-stack.pushStack(tmpStr2,nStack,stack);
 							}
 							else
-								stack<-pushStack(val,nStack,stack)
+								stack<-stack.pushStack(val,nStack,stack)
 							fi
 						fi;
 					}
 					else
-					if entrada = "d" then {stack.printStack();}
-					else
-						stack<-pushStack(entrada,nStack,stack)
-					fi
+					if entrada = "d" then {stack.printStack(stack);}
+						else
+							out_string("Lle a entero");
+							stack<-stack.pushStack(entrada,nStack,stack)
+						fi
 					fi
 				fi;
 			}pool;
@@ -73,26 +79,27 @@ class Stacky inherits StackCommands{
 		next<-y;
 	}};
 	getTop():String{head};
-	getNext():StackCommands{next};
+	getNext():Stacky{next};
 };
 class StackCommands inherits IO {
 	aux:Stacky;
 	temp:Stacky;
-	popStack(stack: Stacky):Stacky{
-		aux<-stack.getNext();
+	popStack(stack: Stacky):Stacky{{
+		aux <-stack.getNext();
 		aux;
-	};
-	pushStack(value:String,n:Int, stack:Stacky):Stacky{
+
+	}};
+	pushStack(value:String,n:Int, stack:Stacky):Stacky{{
 		aux.init(value);
-		if n = 1 then{
-			stack<-aux;
-		}else
+		if n = 1 then stack<-aux
+		else
 		{
-			aux.addthis(stack);
-			stack<-aux;
-		}fi
-		stack;
-	};
+		aux.addthis(stack);
+		stack<-aux;
+		}
+		fi;
+		stack;	
+	}};
 	printStack(stack:Stacky):Object{{
 		
 		temp<-stack;
