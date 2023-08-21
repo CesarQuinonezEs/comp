@@ -1,126 +1,119 @@
+class List {
+   -- Define operations on empty lists.
 
-class Main inherits IO{
-	sumAux:Int;
-	int1:Int;
-	int2:Int;
-	sum:String; 
-	flagStp:Bool;
-	nStack:Int;
-	a2iObj:A2I;
-	entrada:String;
-	stack:Stacky;
-	val:String;
-	tmpStr:String;
-	tmpStr2:String;
-	main():Object{{
-		nStack <- 0;
-		flagStp<-true;
-		a2iObj<-new A2I;
-		stack<-new Stacky;
-		int1<-0;
-		int2<-0;
-		tmpStr<- new String;
-		tmpStr2<-new String;
-		entrada<-new String;
-		out_string("Caracteres que se pueden agregar \n 1. Enetero\n2.+\n3.s\n4.e\n5.d\n6.x\n");
-		while flagStp loop
-			{
-				out_string(">");
-				entrada<-in_string();
-				if entrada="x" then { 
-					out_string("Adios c: ....\n"); 
-					flagStp<-false;
-					}
-				else
-					if entrada="e" then{
-						val<-stack.getTop();
-						stack<-stack.popStack(stack);
-						if val="+" then
-							if nStack<2 then{
-								out_string("ESto no se pude no hay suficientes enteros \n");		
-								stack<-stack.popStack(stack);
-							}else{
-								tmpStr<-stack.getTop();
-								stack<-stack.popStack(stack);
-								tmpStr2<-stack.getTop();
-								stack<-stack.popStack(stack);
-								nStack<-nStack + 1;
-								int2<-a2iObj.a2i(tmpStr);
-								int1<-a2iObj.a2i(tmpStr2);
-								sumAux<- int1+int2;
-								sum<-a2iObj.i2a(sumAux);
-								stack <- stack.pushStack(sum,nStack,stack);
-							}fi
-						else
-							if val="s" then{
-								tmpStr<-stack.getTop();
-								stack<-stack.popStack(stack);
-								tmpStr2<-stack.getTop();
-								stack<-stack.popStack(stack);
-								stack<-stack.pushStack(tmpStr,nStack,stack);
-								stack<-stack.pushStack(tmpStr2,nStack,stack);
-							}
-							else
-								stack<-stack.pushStack(val,nStack,stack)
-							fi
-						fi;
-					}
-					else
-						if entrada = "d" then stack.printStack(stack)
-						else{
-							nStack<-nStack+1;						
-							stack<-stack.pushStack(entrada,nStack,stack);
-						}
-						fi
-					fi
-				fi;
-			}pool;
-	}};
+   isNil() : Bool { true };
+
+   -- Since abort() has return type Object and head() has return type
+   -- String, we need to have an String as the result of the method
+   -- body, even though abort() never returns.
+
+   head()  : String { { abort(); ""; } };
+
+   -- As for head(), the self is just to make sure the return type of
+   -- tail() is correct.
+
+   tail()  : List { { abort(); self; } };
+
+   -- When we cons and element onto the empty list we get a non-empty
+   -- list. The (new Cons) expression creates a new list cell of class
+   -- Cons, which is initialized by a dispatch to init().
+   -- The result of init() is an element of class Cons, but it
+   -- conforms to the return type List, because Cons is a subclass of
+   -- List.
+
+   cons(i : String) : List {
+      (new Cons).init(i, self)
+   };
+
 };
 
-class Stacky inherits StackCommands{
-	head:String;
-	next:Stacky;
-	init(x:String):Object{{
-		head<-x;
-	}};
-	addthis(y:Stacky):Object{{
-		next<-y;
-	}};
-	getTop():String{head};
-	getNext():Stacky{next};
-};
-class StackCommands inherits IO {
-	aux:Stacky;
-	temp:Stacky;
-	popStack(stack: Stacky):Stacky{{
-		aux <-stack.getNext();
-		aux;
 
-	}};
-	pushStack(value:String,n:Int, stack:Stacky):Stacky{{
-		aux.init(value);
-		if n = 1 then stack<-aux
-		else
-		{
-		aux.addthis(stack);
-		stack<-aux;
-		}
-		fi;
-		stack;	
-	}};
-	printStack(stack:Stacky):Object{{
-		
-		temp<-stack;
-		out_string("Pila: \n");
-		while not isvoid stack
-		loop
-		{
-			out_string(temp.getTop());
+class Cons inherits List {
+   h : String;
+   t : List; 
+   isNil() : Bool { false };
+   head()  : String { h };
+   tail()  : List { t };
+   init(i : String, r : List) : List {
+      {
+	 h <- i;
+	 t <- r;
+	 self;
+      }
+   };
+
+};
+
+class StackCommand inherits IO {
+    init(s : String, l : List) : List {       
+        if s = "e" then new Execute.ex(l) else
+        if s = "d" then { new Display.printList(l); l; }
+        else l.cons(s)
+        fi fi
+    };
+};
+
+class Display inherits StackCommand {
+    printList(l : List) : Object {
+      if l.isNil() then out_string("")
+      else {
+			out_string(l.head());
 			out_string("\n");
-			temp <- temp.getNext();
-
+			printList(l.tail());
 		}
-		pool;
-	}};
+      fi
+   };
+};
+
+class Execute inherits StackCommand {
+    ex(l : List) : List {
+        if l.isNil() then l else
+        if l.head() = "+" then new Sum.sum(l.tail()) else
+        if l.head() = "s" then new Swap.swap(l.tail()) else
+        l
+        fi fi fi
+    };
+};
+
+
+class Sum inherits StackCommand {
+    first : Int;
+    second : Int;
+    sum(l : List) : List { {
+        first <- new A2I.a2i_aux(l.head());
+        second <- new A2I.a2i_aux(l.tail().head());
+        new Cons.init(new A2I.i2a_aux(first + second), l.tail().tail());
+    }
+    };
+};
+
+
+class Swap inherits StackCommand {
+    first: String;
+    second: String;
+    swap(l: List) : List { {
+        first <- l.head();
+        second <- l.tail().head();
+        new Cons.init(second, new Cons.init(first, l.tail().tail()));
+    }
+    };
+};
+
+
+class Main inherits IO {
+   l : List;
+   comm : String;
+   main() : Object { {
+    l <- new List;
+	out_string("Comandos validos\n1.<int>\n2.+\n3.s\n4.e\n5.d\n6.x\n");
+    out_string(">");
+    comm <- in_string();
+    while ( not comm = "x" ) loop {
+        l <- (new StackCommand).init(comm, l);
+        out_string(">");
+        comm <- in_string();
+        }
+    pool;
+   }
+   };
 };
