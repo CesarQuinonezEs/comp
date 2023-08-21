@@ -1,5 +1,6 @@
 
 class Main inherits IO{
+	sumAux:Int;
 	int1:Int;
 	int2:Int;
 	sum:String; 
@@ -15,6 +16,12 @@ class Main inherits IO{
 		nStack <- 0;
 		flagStp<-true;
 		a2iObj<-new A2I;
+		stack<-new Stacky;
+		int1<-0;
+		int2<-0;
+		tmpStr<- new String;
+		tmpStr2<-new String;
+		entrada<-new String;
 		out_string("Caracteres que se pueden agregar \n 1. Enetero\n2.+\n3.s\n4.e\n5.d\n6.x\n");
 		while flagStp loop
 			{
@@ -40,7 +47,8 @@ class Main inherits IO{
 								nStack<-nStack + 1;
 								int2<-a2iObj.a2i(tmpStr);
 								int1<-a2iObj.a2i(tmpStr2);
-								sum<-a2iObj.i2a( int1+ int2);
+								sumAux<- int1+int2;
+								sum<-a2iObj.i2a(sumAux);
 								stack <- stack.pushStack(sum,nStack,stack);
 							}fi
 						else
@@ -58,10 +66,11 @@ class Main inherits IO{
 						fi;
 					}
 					else
-					if entrada = "d" then {stack.printStack(stack);}
-						else
-							out_string("Lle a entero");
-							stack<-stack.pushStack(entrada,nStack,stack)
+						if entrada = "d" then stack.printStack(stack)
+						else{
+							nStack<-nStack+1;						
+							stack<-stack.pushStack(entrada,nStack,stack);
+						}
 						fi
 					fi
 				fi;
