@@ -43,24 +43,23 @@ import java_cup.runtime.Symbol;
     AbstractSymbol curr_filename() {
         return filename;
     }
+    /*
+     * Add extra field and methods here.
+     */
 %}
-
+/*  Code enclosed in %init{ %init} is copied verbatim to the lexer
+ *  class constructor, all the extra initialization you want to do should
+ *  go here. */
 %init{
-    /*  Stuff enclosed in %init{ %init} is copied verbatim to the lexer
-     *  class constructor, all the extra initialization you want to do should
-     *  go here.  Don't remove or modify anything that was there initially. */
-
     // empty for now
 %init}
-
+/*  Code enclosed in %eofval{ %eofval} specifies java code that is
+ *  executed when end-of-file is reached.  If you use multiple lexical
+ *  states and want to do something special if an EOF is encountered in
+ *  one of those states, place your code in the switch statement.
+ *  Ultimately, you should return the EOF symbol, or your lexer won't
+ *  work. */
 %eofval{
-    /*  Stuff enclosed in %eofval{ %eofval} specifies java code that is
-     *  executed when end-of-file is reached.  If you use multiple lexical
-     *  states and want to do something special if an EOF is encountered in
-     *  one of those states, place your code in the switch statement.
-     *  Ultimately, you should return the EOF symbol, or your lexer won't
-     *  work.  */
-
     if (eof_error_emitted)
         return new Symbol(TokenConstants.EOF);
 
@@ -108,7 +107,7 @@ Integer    = [0-9]+
 
 <YYINITIAL> "(*"          { yybegin(BLOCK_COMMENT); }
 <YYINITIAL> "*)"          { return new Symbol(TokenConstants.ERROR, "Mismatched '*)'"); }
-
+/*BLoque de comentario*/
 <BLOCK_COMMENT> [^\n*\(\)]+ { }
 <BLOCK_COMMENT> [\(\)*]     { }
 <BLOCK_COMMENT> \n          { curr_lineno++; }
@@ -120,7 +119,7 @@ Integer    = [0-9]+
                                     yybegin(YYINITIAL);
                                 }
                             }
-/*Reserved Words*/
+/*Palabras reservadas*/
 <YYINITIAL> [Cc][Aa][Ss][Ee]             { return new Symbol(TokenConstants.CASE); }
 <YYINITIAL>[Cc][Ll][Aa][Ss][Ss] { return new Symbol(TokenConstants.CLASS); }
 <YYINITIAL>[Ee][Ll][Ss][Ee]  	{ return new Symbol(TokenConstants.ELSE); }
@@ -141,7 +140,7 @@ Integer    = [0-9]+
 <YYINITIAL>[Ww][Hh][Ii][Ll][Ee] { return new Symbol(TokenConstants.WHILE); }
 
 
-/*Symbols*/
+/*Simbolos*/
 <YYINITIAL> "=>"       { return new Symbol(TokenConstants.DARROW); }
 <YYINITIAL> "<="       { return new Symbol(TokenConstants.LE); }
 <YYINITIAL> "<-"       { return new Symbol(TokenConstants.ASSIGN); }

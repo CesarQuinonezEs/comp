@@ -435,6 +435,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
     AbstractSymbol curr_filename() {
         return filename;
     }
+    /*
+     * Add extra field and methods here.
+     */
 
 
   /**
@@ -443,11 +446,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
    * @param   in  the java.io.Reader to read input from.
    */
   CoolLexer(java.io.Reader in) {
-      /*  Stuff enclosed in %init{ %init} is copied verbatim to the lexer
-     *  class constructor, all the extra initialization you want to do should
-     *  go here.  Don't remove or modify anything that was there initially. */
-
-    // empty for now
+      // empty for now
     this.zzReader = in;
   }
 
@@ -765,14 +764,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
       if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
         zzAtEOF = true;
             zzDoEOF();
-          {     /*  Stuff enclosed in %eofval{ %eofval} specifies java code that is
-     *  executed when end-of-file is reached.  If you use multiple lexical
-     *  states and want to do something special if an EOF is encountered in
-     *  one of those states, place your code in the switch statement.
-     *  Ultimately, you should return the EOF symbol, or your lexer won't
-     *  work.  */
-
-    if (eof_error_emitted)
+          {     if (eof_error_emitted)
         return new Symbol(TokenConstants.EOF);
 
     switch(yystate()) {

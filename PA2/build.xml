@@ -29,7 +29,7 @@
   <!-- target: test -->
   <target name="test" depends="lexer">
     <exec executable="python">
-      <arg line="mylexer.py test.cl"/>
+      <arg line="mylexer.py stack.cl"/>
     </exec>
   </target>
 
