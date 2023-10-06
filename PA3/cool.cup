@@ -131,18 +131,114 @@ class_cc
 				    f, curr_filename()); :}
 	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE optional_feature_list:f RBRACE SEMI
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
+	| error
+		{: :}
 	;
 
 
 optional_feature_list
-	::= /* empty */
-	    {: RESULT = new Features(curr_lineno()); :}
+	/* Un feature */
+	::= feature:f SEMI
+		{: RESULT = (new Features(curr_lineno())).appendElement(f); :}
+	/* Lista de features */
+	| optional_feature_list:fl feature:f SEMI
+		{: RESULT = fl.appendElement(f); :}
+	/* Ninguno */
+	|
+		{: RESULT = new Features(curr_lineno()); :}
+	;
+
+formal_list
+	/* Un solo formal */
+	::= formal:f
+	   	{: RESULT = (new Formals(curr_lineno())).appendElement(f); :} 
+	/* Lista solo formal */
+	| formal_list:fl COMMA formal:f
+	        {: RESULT = fl.appendElement(f); :}
+	| /* Ninguno */
+		{: RESULT = new Formals(curr_lineno()); :}
+	;
+
+formal
+	/* Definición de Formal */
+	::= OBJECTID:object COLON TYPEID:type
+		{: RESULT = new formalc(curr_lineno(), object, type); :}
+	;
+
+nested_let
+	::= OBJECTID:n COLON TYPEID:id IN expr:ex
+		{: RESULT = new let(curr_lineno(), n, id, new no_expr(curr_lineno()), ex); :}
+	| OBJECTID:n COLON TYPEID:id ASSIGN expr:ex1 IN expr:ex2
+		{: RESULT = new let(curr_lineno(), n, id, ex1, ex2); :}
+	| OBJECTID:n COLON TYPEID:id COMMA nested_let:nl
+		{: RESULT = new let(curr_lineno(), n, id, new no_expr(curr_lineno()), nl); :}
+	| OBJECTID:n COLON TYPEID:id ASSIGN expr:ex COMMA nested_let:nl
+		{: RESULT = new let(curr_lineno(), n, id, ex, nl); :}
 	;
 
 
 /* Expressions */
 expr
-	::= expr:e1 PLUS expr:e2
+	::= OBJECTID:id ASSIGN expr:ex
+	    {: RESULT = new assign(curr_lineno(), id, ex); :}
+	/* Expresión con tipo y que sigue con un punto */
+	| expr:ex AT TYPEID:id DOT OBJECTID:o LPAREN actuals:a RPAREN
+	    {: RESULT = new static_dispatch(curr_lineno(), ex, id, o, a); :}
+	/* Expresión que sigue con un punto */
+	| expr:ex DOT OBJECTID:o LPAREN actuals:a RPAREN
+	    {: RESULT = new dispatch(curr_lineno(), ex, o, a); :}
+	/* IF */
+	| IF expr:ex1 THEN expr:ex2 ELSE expr:ex3 FI
+	    {: RESULT = new cond(curr_lineno(), ex1, ex2, ex3); :}
+	/* WHILE */
+	| WHILE expr:ex1 LOOP expr:ex2 POOL
+	    {: RESULT = new loop(curr_lineno(), ex1, ex2); :}
+	/* { } con al menos una expresión dentro */
+	| LBRACE multiple_expressions:mex RBRACE
+	    {: RESULT = new block(curr_lineno(), mex); :}
+	/* CASE */
+	| CASE expr:ex OF case_list:cl ESAC
+	    {: RESULT = new typcase(curr_lineno(), ex, cl); :}
+	/* LET */
+	| LET nested_let:nl
+	    {: RESULT = nl; :}
+	/* new */
+	| NEW TYPEID:type
+	    {: RESULT = new new_(curr_lineno(),type); :}
+	/* expr + expr SUMA */
+	| expr:e1 PLUS expr:e2
+	    {: RESULT = new plus(curr_lineno(), e1, e2); :}
+	/* expr - expr RESTA */
+	| expr:e1 MINUS expr:e2
+	    {: RESULT = new sub(curr_lineno(), e1, e2); :}
+	/* expr * expr MULTIPLICACIÓN */
+	| expr:e1 MULT expr:e2
+	    {: RESULT = new mul(curr_lineno(), e1, e2); :}
+	/* expr * expr DIVISIÓN */
+	| expr:e1 DIV expr:e2
+	    {: RESULT = new divide(curr_lineno(), e1, e2); :}
+	/* ~expr NEGACIÓN */
+	| NEG expr:e
+	    {: RESULT = new neg(curr_lineno(), e); :}
+	/* expr < expr  */
+	| expr:e1 LT expr:e2
+	    {: RESULT = new lt(curr_lineno(), e1, e2); :}
+	/* expr = expr  */
+	| expr:e1 EQ expr:e2
+	    {: RESULT = new eq(curr_lineno(), e1, e2); :}
+	/* expr <= expr  */
+	| expr:e1 LE expr:e2
+	    {: RESULT = new leq(curr_lineno(), e1, e2); :}
+	/* NOT */
+	| NOT expr:e
+	    {: RESULT = new comp(curr_lineno(), e); :}
+	/* ( expr )  */
+	| LPAREN expr:e RPAREN
+	    {: RESULT = e; :}
+	/* INT */
+	| INT_CONST:i
+	    {: RESULT = new int_const(curr_lineno(), i); :}
+	/* STR */::= expr:e1 PLUS expr:e2
 	    {: RESULT = new plus(curr_lineno(), e1, e2); :}
 	| expr:e1 MINUS expr:e2
 	    {: RESULT = new sub(curr_lineno(), e1, e2); :}
@@ -176,25 +272,51 @@ expr
 	                                        AbstractTable.idtable.addString("self")),
 				     n, a); :}
         ;
+	| STR_CONST:s
+	    {: RESULT = new string_const(curr_lineno(), s); :}
+	/* BOOL */
+	| BOOL_CONST:b
+	    {: RESULT = new bool_const(curr_lineno(), b); :}
+	/* ID */
+	| OBJECTID:o
+	    {: RESULT = new object(curr_lineno(), o); :}
+	/* ID( ) como comente, este puede guardar una expresión sin punto y ccoma */
+	| OBJECTID:n LPAREN actuals:a RPAREN
+	    {: RESULT = new dispatch(curr_lineno(),
+	                             new object(curr_lineno(), 
+	                                        AbstractTable.idtable.addString("self")), n, a); :}
+        ;
 
 
 /* Method arguments */
-actuals
-        /* No arguments */
-	::= LPAREN RPAREN
+aactuals
+	::= expr:e
+	    {: RESULT = (new Expressions(curr_lineno())).appendElement(e); :}
+	| actuals:a COMMA expr:ex
+	    {: RESULT = a.appendElement(ex); :}
+	| 
 	    {: RESULT = new Expressions(curr_lineno()); :}
-        /* List of arguments */
-	| LPAREN exp_list:el RPAREN
-	    {: RESULT = el; :}
 	;
 
+/* En este lo que se busca es que generalizar las expresiones, donde puedes tener una o varias expresiones */
+multiple_expressions
+	::= expr:e SEMI
+	    {: RESULT = (new Expressions(curr_lineno())).appendElement(e); :}
+	| multiple_expressions:mex expr:e SEMI
+	    {: RESULT = mex.appendElement(e); :}
+	;
 
-/* Non-empty list of expressions */
-exp_list
-        /* One expression */
-	::= expr:e
-	    {: RESULT = (new Expressions(curr_lineno())).appendElement(e); :} 
-        /* Several expressions */
-	| exp_list:el COMMA expr:e
-	    {: RESULT = el.appendElement(e); :}
+case_list
+	/* Un case */
+	::= case_branch:cb
+		{: RESULT = (new Cases(curr_lineno())).appendElement(cb); :}
+	/* Varios case */
+	| case_list:cl case_branch:cb
+		{: RESULT = cl.appendElement(cb); :}
+	;
+
+case_branch
+	/* Definición de un case*/
+	::= OBJECTID:o COLON TYPEID:id DARROW expr:ex SEMI
+	    {: RESULT = new branch(curr_lineno(), o, id, ex); :}
 	;

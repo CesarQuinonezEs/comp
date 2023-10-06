@@ -1,4 +1,3 @@
-
 (*
  *  execute "coolc bad.cl" to see the error messages that the coolc parser
  *  generates
@@ -26,4 +25,3 @@ Class D inherts A {
 (* error:  closing brace is missing *)
 Class E inherits A {
 ;
-
